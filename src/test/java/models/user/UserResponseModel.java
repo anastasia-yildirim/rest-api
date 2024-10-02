@@ -9,5 +9,11 @@ public class UserResponseModel {
     String name, job;
 
     @JsonIgnore
-    String id, createdAt;
+    String id;
+
+    @JsonIgnore
+    String createdAt;   //for create user response
+
+    @JsonIgnore
+    String updatedAt;   //for update user response
 }

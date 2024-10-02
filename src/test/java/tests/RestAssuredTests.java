@@ -7,6 +7,8 @@ import models.user.UserBodyModel;
 import models.user.UserResponseModel;
 import org.junit.jupiter.api.Test;
 
+import static helpers.CustomAllureListener.withCustomTemplates;
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.*;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,20 +24,26 @@ public class RestAssuredTests extends TestBase {
         bodyData.setName("Ronald McDonald");
         bodyData.setJob("Entertainment Manager");
 
-        UserResponseModel response = given()
+        UserResponseModel response = step("Make request", ()->
+                given()
+                    .filter(withCustomTemplates())
+                    .log().uri()
+                    .log().body()
+                    .log().headers()
                     .body(bodyData)
                     .contentType(JSON)
-                    .log().uri()
                 .when()
-                    .post(baseURI + basePath + "/users")
+                    .post("/users")
                 .then()
                     .log().status()
                     .log().body()
                     .statusCode(201)
-                    .extract().as(UserResponseModel.class);
+                    .extract().as(UserResponseModel.class));
 
-        assertEquals(bodyData.getName(), response.getName());
-        assertEquals(bodyData.getJob(), response.getJob());
+        step("Check response", ()-> {
+            assertEquals(bodyData.getName(), response.getName());
+            assertEquals(bodyData.getJob(), response.getJob());
+        });
     }
 
     @Test
@@ -44,32 +52,41 @@ public class RestAssuredTests extends TestBase {
         bodyData.setName("Ronald McDonald");
         bodyData.setJob("Chief Entertainment Manager");
 
-        UserResponseModel response = given()
+        UserResponseModel response = step("Make request", ()->
+                given()
                     .body(bodyData)
                     .contentType(JSON)
                     .log().uri()
+                    .log().body()
+                    .log().headers()
                 .when()
-                    .put(baseURI + basePath + "/users/2")
+                    .put("/users/2")
                 .then()
                     .log().status()
                     .log().body()
                     .statusCode(200)
-                    .extract().as(UserResponseModel.class);
+                    .extract().as(UserResponseModel.class));
 
+        step("Check response", ()-> {
         assertEquals(bodyData.getName(), response.getName());
         assertEquals(bodyData.getJob(), response.getJob());
+        });
     }
 
     @Test
     void singleUserNotFoundTest() {
-        given()
+        step("Make request and check 404 is returned", ()->
+                given()
                     .log().uri()
+                    .log().body()
+                    .log().headers()
                 .when()
-                    .get(baseURI + basePath + "/users/23")
+                    .get("/users/23")
                 .then()
                     .log().status()
                     .log().body()
-                    .statusCode(404);
+                    .statusCode(404));
+
     }
 
     @Test
@@ -78,22 +95,27 @@ public class RestAssuredTests extends TestBase {
         bodyData.setEmail("eve.holt@reqres.in");
         bodyData.setPassword("pistol");
 
-        RegisterResponseModel response = given()
+        RegisterResponseModel response = step("Make request", ()->
+                given()
                     .body(bodyData)
                     .contentType(JSON)
                     .log().uri()
+                    .log().body()
+                    .log().headers()
                 .when()
-                    .post(baseURI + basePath + "/register")
+                    .post("/register")
                 .then()
                     .log().status()
                     .log().body()
                     .statusCode(200)
-                    .extract().as(RegisterResponseModel.class);
+                    .extract().as(RegisterResponseModel.class));
 
+        step("Check response", ()-> {
         assertNotEquals(null, response.getId());
         assertThat(response.getToken().length(), greaterThan(10));
         assertThat(response.getToken(), is(notNullValue()));
         assertThat(response.getToken(), matchesPattern("^[a-zA-Z0-9]+$"));
+        });
     }
 
     @Test
@@ -104,19 +126,22 @@ public class RestAssuredTests extends TestBase {
 
         String expectedErrorText = "Note: Only defined users succeed registration";
 
-        UnsuccessfulRegisterResponseModel response = given()
+        UnsuccessfulRegisterResponseModel response = step("Make request", ()->
+                given()
                     .body(bodyData)
                     .contentType(JSON)
                     .log().uri()
+                    .log().body()
+                    .log().headers()
                 .when()
-                    .post(baseURI + basePath + "/register")
+                    .post("/register")
                 .then()
                     .log().status()
                     .log().body()
                     .statusCode(400)
-                    .extract().as(UnsuccessfulRegisterResponseModel.class);
+                    .extract().as(UnsuccessfulRegisterResponseModel.class));
 
-        assertEquals(expectedErrorText, response.getError());
+        step("Check response", ()-> assertEquals(expectedErrorText, response.getError()));
     }
 
     @Test
@@ -127,20 +152,23 @@ public class RestAssuredTests extends TestBase {
 
         String expectedErrorText = "Missing password";
 
-        UnsuccessfulRegisterResponseModel response = given()
+        UnsuccessfulRegisterResponseModel response = step("Make request", ()->
+                given()
                     .body(bodyData)
                     .contentType(JSON)
                     .log().uri()
+                    .log().body()
+                    .log().headers()
 
                 .when()
-                    .post(baseURI + basePath + "/register")
+                    .post("/register")
 
                 .then()
                     .log().status()
                     .log().body()
                     .statusCode(400)
-                    .extract().as(UnsuccessfulRegisterResponseModel.class);
+                    .extract().as(UnsuccessfulRegisterResponseModel.class));
 
-        assertEquals(expectedErrorText, response.getError());
+        step("Check response", ()-> assertEquals(expectedErrorText, response.getError()));
     }
 }
