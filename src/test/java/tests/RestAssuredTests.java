@@ -1,124 +1,156 @@
 package tests;
 
+import models.register.RegisterRequestModel;
+import models.register.RegisterResponseModel;
+import models.register.UnsuccessfulRegisterResponseModel;
+import models.user.CreateUpdateUserRequestModel;
+import models.user.CreateUpdateUserResponseModel;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.*;
-import static io.restassured.http.ContentType.JSON;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static specs.DefaultSpec.defaultRequestSpec;
+import static specs.DefaultSpec.defaultResponseSpec;
 
 public class RestAssuredTests extends TestBase {
 
+    @DisplayName("Успешное создание пользователя")
+    @Tag("reqres")
     @Test
     void successfulCreateUserTest() {
-        String bodyData = "{\"name\": \"Ronald McDonald\", \"job\": \"Entertainment Manager\"}";
+        CreateUpdateUserRequestModel bodyData = new CreateUpdateUserRequestModel();
+        bodyData.setName("Ronald McDonald");
+        bodyData.setJob("Entertainment Manager");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        CreateUpdateUserResponseModel response = step("Make request", ()->
+                given(defaultRequestSpec)
+                    .body(bodyData)
                 .when()
-                .post(baseURI + basePath + "/users")
-
+                    .post("/users")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(201)
-                .body("name", is("Ronald McDonald"))
-                .body("job", is("Entertainment Manager"));
+                    .spec(defaultResponseSpec)
+                    .statusCode(201)
+                    .extract().as(CreateUpdateUserResponseModel.class));
+
+        step("Check response", ()-> {
+            assertEquals(bodyData.getName(), response.getName());
+            assertEquals(bodyData.getJob(), response.getJob());
+        });
     }
 
+    @DisplayName("Успешное обновление данных пользователя")
+    @Tag("reqres")
     @Test
     void successfulUpdateUserTest() {
-        String bodyData = "{\"name\": \"Ronald McDonald\", \"job\": \"Chief Entertainment Manager\"}";
+        CreateUpdateUserRequestModel bodyData = new CreateUpdateUserRequestModel();
+        bodyData.setName("Ronald McDonald");
+        bodyData.setJob("Chief Entertainment Manager");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        CreateUpdateUserResponseModel response = step("Make request", ()->
+                given(defaultRequestSpec)
+                    .body(bodyData)
                 .when()
-                .put(baseURI + basePath + "/users/2")
-
+                    .put("/users/2")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("name", is("Ronald McDonald"))
-                .body("job", is("Chief Entertainment Manager"));
+                    .spec(defaultResponseSpec)
+                    .statusCode(200)
+                    .extract().as(CreateUpdateUserResponseModel.class));
+
+        step("Check response", ()-> {
+        assertEquals(bodyData.getName(), response.getName());
+        assertEquals(bodyData.getJob(), response.getJob());
+        });
     }
 
+    @DisplayName("Пользователь не найден")
+    @Tag("reqres")
     @Test
-    void singleUserNotFoundTest() {
-        given()
-                .log().uri()
-
+    void userNotFoundTest() {
+        step("Make request and check 404 is returned", ()->
+                given(defaultRequestSpec)
                 .when()
-                .get(baseURI + basePath + "/users/23")
-
+                    .get("/users/23")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(404);
+                    .spec(defaultResponseSpec)
+                    .statusCode(404));
     }
 
+    @DisplayName("Успешная регистрация")
+    @Tag("reqres")
     @Test
     void successfulRegisterTest() {
-        String bodyData = "{\"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\"}";
+        RegisterRequestModel bodyData = new RegisterRequestModel();
+        bodyData.setEmail("eve.holt@reqres.in");
+        bodyData.setPassword("pistol");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        RegisterResponseModel response = step("Make request", ()->
+                given(defaultRequestSpec)
+                    .body(bodyData)
                 .when()
-                .post(baseURI + basePath + "/register")
-
+                    .post("/register")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("id", is(notNullValue()))
-                .body("token.length()", greaterThan(10))
-                .body("token", is(notNullValue()))
-                .body("token", matchesPattern("^[a-zA-Z0-9]*$"));
+                    .spec(defaultResponseSpec)
+                    .statusCode(200)
+                    .extract().as(RegisterResponseModel.class));
+
+        step("Check response", ()-> {
+        assertNotEquals(null, response.getId());
+        assertThat(response.getToken().length(), greaterThan(10));
+        assertThat(response.getToken(), is(notNullValue()));
+        assertThat(response.getToken(), matchesPattern("^[a-zA-Z0-9]+$"));
+        });
     }
 
+    @DisplayName("Неуспешная регистрация - невалидный пользователь")
+    @Tag("reqres")
     @Test
     void unsuccessfulRegisterUndefinedUserTest() {
-        String bodyData = "{\"email\": \"lewis.carol@reqres.in\", \"password\": \"alice\"}";
+        RegisterRequestModel bodyData = new RegisterRequestModel();
+        bodyData.setEmail("lewis.carol@reqres.in");
+        bodyData.setPassword("alice");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
+        String expectedErrorText = "Note: Only defined users succeed registration";
 
+        UnsuccessfulRegisterResponseModel response = step("Make request", ()->
+                given(defaultRequestSpec)
+                    .body(bodyData)
                 .when()
-                .post(baseURI + basePath + "/register")
-
+                    .post("/register")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(400)
-                .body("error", is("Note: Only defined users succeed registration"));
+                    .spec(defaultResponseSpec)
+                    .statusCode(400)
+                    .extract().as(UnsuccessfulRegisterResponseModel.class));
+
+        step("Check response", ()-> assertEquals(expectedErrorText, response.getError()));
     }
 
+    @DisplayName("Неуспешная регистрация - отсутствует пароль")
+    @Tag("reqres")
     @Test
     void unsuccessfulRegisterMissingPasswordTest() {
-        String bodyData = "{\"email\": \"eveasdas.holt@reqres.in\"}";
+        RegisterRequestModel bodyData = new RegisterRequestModel();
+        bodyData.setEmail("eveasdas.holt@reqres.in");
+        bodyData.setPassword(null);
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
+        String expectedErrorText = "Missing password";
 
+        UnsuccessfulRegisterResponseModel response = step("Make request", ()->
+                given(defaultRequestSpec)
+                    .body(bodyData)
                 .when()
-                .post(baseURI + basePath + "/register")
+                    .post("/register")
 
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(400)
-                .body("error", is("Missing password"));
+                    .spec(defaultResponseSpec)
+                    .statusCode(400)
+                    .extract().as(UnsuccessfulRegisterResponseModel.class));
+
+        step("Check response", ()-> assertEquals(expectedErrorText, response.getError()));
     }
 }
