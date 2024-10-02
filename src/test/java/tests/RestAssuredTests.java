@@ -1,124 +1,146 @@
 package tests;
 
+import models.register.RegisterBodyModel;
+import models.register.RegisterResponseModel;
+import models.register.UnsuccessfulRegisterResponseModel;
+import models.user.UserBodyModel;
+import models.user.UserResponseModel;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.*;
 import static io.restassured.http.ContentType.JSON;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class RestAssuredTests extends TestBase {
 
     @Test
     void successfulCreateUserTest() {
-        String bodyData = "{\"name\": \"Ronald McDonald\", \"job\": \"Entertainment Manager\"}";
+        UserBodyModel bodyData = new UserBodyModel();
+        bodyData.setName("Ronald McDonald");
+        bodyData.setJob("Entertainment Manager");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        UserResponseModel response = given()
+                    .body(bodyData)
+                    .contentType(JSON)
+                    .log().uri()
                 .when()
-                .post(baseURI + basePath + "/users")
-
+                    .post(baseURI + basePath + "/users")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(201)
-                .body("name", is("Ronald McDonald"))
-                .body("job", is("Entertainment Manager"));
+                    .log().status()
+                    .log().body()
+                    .statusCode(201)
+                    .extract().as(UserResponseModel.class);
+
+        assertEquals(bodyData.getName(), response.getName());
+        assertEquals(bodyData.getJob(), response.getJob());
     }
 
     @Test
     void successfulUpdateUserTest() {
-        String bodyData = "{\"name\": \"Ronald McDonald\", \"job\": \"Chief Entertainment Manager\"}";
+        UserBodyModel bodyData = new UserBodyModel();
+        bodyData.setName("Ronald McDonald");
+        bodyData.setJob("Chief Entertainment Manager");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        UserResponseModel response = given()
+                    .body(bodyData)
+                    .contentType(JSON)
+                    .log().uri()
                 .when()
-                .put(baseURI + basePath + "/users/2")
-
+                    .put(baseURI + basePath + "/users/2")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("name", is("Ronald McDonald"))
-                .body("job", is("Chief Entertainment Manager"));
+                    .log().status()
+                    .log().body()
+                    .statusCode(200)
+                    .extract().as(UserResponseModel.class);
+
+        assertEquals(bodyData.getName(), response.getName());
+        assertEquals(bodyData.getJob(), response.getJob());
     }
 
     @Test
     void singleUserNotFoundTest() {
         given()
-                .log().uri()
-
+                    .log().uri()
                 .when()
-                .get(baseURI + basePath + "/users/23")
-
+                    .get(baseURI + basePath + "/users/23")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(404);
+                    .log().status()
+                    .log().body()
+                    .statusCode(404);
     }
 
     @Test
     void successfulRegisterTest() {
-        String bodyData = "{\"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\"}";
+        RegisterBodyModel bodyData = new RegisterBodyModel();
+        bodyData.setEmail("eve.holt@reqres.in");
+        bodyData.setPassword("pistol");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
-
+        RegisterResponseModel response = given()
+                    .body(bodyData)
+                    .contentType(JSON)
+                    .log().uri()
                 .when()
-                .post(baseURI + basePath + "/register")
-
+                    .post(baseURI + basePath + "/register")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("id", is(notNullValue()))
-                .body("token.length()", greaterThan(10))
-                .body("token", is(notNullValue()))
-                .body("token", matchesPattern("^[a-zA-Z0-9]*$"));
+                    .log().status()
+                    .log().body()
+                    .statusCode(200)
+                    .extract().as(RegisterResponseModel.class);
+
+        assertNotEquals(null, response.getId());
+        assertThat(response.getToken().length(), greaterThan(10));
+        assertThat(response.getToken(), is(notNullValue()));
+        assertThat(response.getToken(), matchesPattern("^[a-zA-Z0-9]+$"));
     }
 
     @Test
     void unsuccessfulRegisterUndefinedUserTest() {
-        String bodyData = "{\"email\": \"lewis.carol@reqres.in\", \"password\": \"alice\"}";
+        RegisterBodyModel bodyData = new RegisterBodyModel();
+        bodyData.setEmail("lewis.carol@reqres.in");
+        bodyData.setPassword("alice");
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
+        String expectedErrorText = "Note: Only defined users succeed registration";
 
+        UnsuccessfulRegisterResponseModel response = given()
+                    .body(bodyData)
+                    .contentType(JSON)
+                    .log().uri()
                 .when()
-                .post(baseURI + basePath + "/register")
-
+                    .post(baseURI + basePath + "/register")
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(400)
-                .body("error", is("Note: Only defined users succeed registration"));
+                    .log().status()
+                    .log().body()
+                    .statusCode(400)
+                    .extract().as(UnsuccessfulRegisterResponseModel.class);
+
+        assertEquals(expectedErrorText, response.getError());
     }
 
     @Test
     void unsuccessfulRegisterMissingPasswordTest() {
-        String bodyData = "{\"email\": \"eveasdas.holt@reqres.in\"}";
+        RegisterBodyModel bodyData = new RegisterBodyModel();
+        bodyData.setEmail("eveasdas.holt@reqres.in");
+        bodyData.setPassword(null);
 
-        given()
-                .body(bodyData)
-                .contentType(JSON)
-                .log().uri()
+        String expectedErrorText = "Missing password";
+
+        UnsuccessfulRegisterResponseModel response = given()
+                    .body(bodyData)
+                    .contentType(JSON)
+                    .log().uri()
 
                 .when()
-                .post(baseURI + basePath + "/register")
+                    .post(baseURI + basePath + "/register")
 
                 .then()
-                .log().status()
-                .log().body()
-                .statusCode(400)
-                .body("error", is("Missing password"));
+                    .log().status()
+                    .log().body()
+                    .statusCode(400)
+                    .extract().as(UnsuccessfulRegisterResponseModel.class);
+
+        assertEquals(expectedErrorText, response.getError());
     }
 }
