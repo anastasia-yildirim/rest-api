@@ -4,7 +4,7 @@ import io.qameta.allure.internal.shadowed.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
-public class UserResponseModel {
+public class CreateUpdateUserResponseModel {
 
     String name, job;
 
