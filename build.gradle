@@ -31,7 +31,8 @@ dependencies {
             "io.rest-assured:json-schema-validator:$restAssuredVersion",
             "io.qameta.allure:allure-rest-assured:$allureVersion",
             "org.junit.jupiter:junit-jupiter:5.10.0",
-            'org.slf4j:slf4j-simple:2.0.7'
+            'org.slf4j:slf4j-simple:2.0.7',
+            'com.codeborne:selenide:7.5.0'
     )
 }
 
@@ -49,5 +50,11 @@ tasks.withType(Test) {
 task reqres_tests(type: Test) {
     useJUnitPlatform {
         includeTags("reqres")
+    }
+}
+
+task bookstore_tests(type: Test) {
+    useJUnitPlatform {
+        includeTags("bookstore")
     }
 }

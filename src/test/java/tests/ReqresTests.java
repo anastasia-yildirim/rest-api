@@ -1,10 +1,12 @@
 package tests;
 
-import models.register.RegisterRequestModel;
-import models.register.RegisterResponseModel;
-import models.register.UnsuccessfulRegisterResponseModel;
-import models.user.CreateUpdateUserRequestModel;
-import models.user.CreateUpdateUserResponseModel;
+import io.restassured.RestAssured;
+import models.reqres.register.RegisterRequestModel;
+import models.reqres.register.RegisterResponseModel;
+import models.reqres.register.UnsuccessfulRegisterResponseModel;
+import models.reqres.register.user.CreateUpdateUserRequestModel;
+import models.reqres.register.user.CreateUpdateUserResponseModel;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -15,13 +17,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static specs.DefaultSpec.defaultRequestSpec;
-import static specs.DefaultSpec.defaultResponseSpec;
+import static specs.DefaultReqresSpec.defaultRequestSpec;
+import static specs.DefaultReqresSpec.defaultResponseSpec;
 
-public class RestAssuredTests extends TestBase {
+@Tag("reqres")
+public class ReqresTests extends TestBase {
+
+    @BeforeAll
+    static void prepare() {
+        RestAssured.baseURI ="https://reqres.in";
+        RestAssured.basePath ="/api";
+    }
 
     @DisplayName("Успешное создание пользователя")
-    @Tag("reqres")
     @Test
     void successfulCreateUserTest() {
         CreateUpdateUserRequestModel bodyData = new CreateUpdateUserRequestModel();
@@ -45,7 +53,6 @@ public class RestAssuredTests extends TestBase {
     }
 
     @DisplayName("Успешное обновление данных пользователя")
-    @Tag("reqres")
     @Test
     void successfulUpdateUserTest() {
         CreateUpdateUserRequestModel bodyData = new CreateUpdateUserRequestModel();
@@ -69,7 +76,6 @@ public class RestAssuredTests extends TestBase {
     }
 
     @DisplayName("Пользователь не найден")
-    @Tag("reqres")
     @Test
     void userNotFoundTest() {
         step("Make request and check 404 is returned", ()->
@@ -82,7 +88,6 @@ public class RestAssuredTests extends TestBase {
     }
 
     @DisplayName("Успешная регистрация")
-    @Tag("reqres")
     @Test
     void successfulRegisterTest() {
         RegisterRequestModel bodyData = new RegisterRequestModel();
@@ -108,7 +113,6 @@ public class RestAssuredTests extends TestBase {
     }
 
     @DisplayName("Неуспешная регистрация - невалидный пользователь")
-    @Tag("reqres")
     @Test
     void unsuccessfulRegisterUndefinedUserTest() {
         RegisterRequestModel bodyData = new RegisterRequestModel();
@@ -131,7 +135,6 @@ public class RestAssuredTests extends TestBase {
     }
 
     @DisplayName("Неуспешная регистрация - отсутствует пароль")
-    @Tag("reqres")
     @Test
     void unsuccessfulRegisterMissingPasswordTest() {
         RegisterRequestModel bodyData = new RegisterRequestModel();
