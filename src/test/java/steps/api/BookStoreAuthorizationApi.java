@@ -18,13 +18,13 @@ import static specs.BookStoreSpec.*;
 
 public class BookStoreAuthorizationApi {
 
-    @Step("Создать токен")
+    @Step("Сгенерировать токен")
     public static void generateToken() {
         GenerateTokenRequestModel bodyData = new GenerateTokenRequestModel();
         bodyData.setUserName(login);
         bodyData.setPassword(password);
 
-        GenerateTokenResponseModel response = step("Отправить запрос на генерацию токена", () ->
+        GenerateTokenResponseModel response = step("Отправить запрос", () ->
                 given(bookStoreRequestSpec)
                         .body(bodyData)
                         .when()
