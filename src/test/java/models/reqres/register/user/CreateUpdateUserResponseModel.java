@@ -1,4 +1,4 @@
-package models.user;
+package models.reqres.register.user;
 
 import io.qameta.allure.internal.shadowed.jackson.annotation.JsonIgnore;
 import lombok.Data;
