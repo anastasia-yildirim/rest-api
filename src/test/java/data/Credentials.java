@@ -1,6 +1,9 @@
 package data;
 
-public class TestData {
+import lombok.Data;
+
+@Data
+public class Credentials {
 
     public static String login = "nicko43",
                             password = "Somepassword1!";

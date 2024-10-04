@@ -9,6 +9,6 @@ public class LoginResponseModel {
     @JsonProperty("username")
     String userName;
     @JsonProperty("created_date")
-    String createdDate;
+    String create_date;
     Boolean isActive;
 }

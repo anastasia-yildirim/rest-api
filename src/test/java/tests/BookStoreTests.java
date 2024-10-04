@@ -1,24 +1,24 @@
 package tests;
 
 import com.codeborne.selenide.Configuration;
+import data.Session;
+import helpers.LoginExtension;
+import helpers.WithLogin;
 import io.restassured.RestAssured;
 import models.bookstore.BookModel;
-import models.bookstore.LoginResponseModel;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import steps.BookStoreSteps;
+import org.junit.jupiter.api.*;
+import steps.api.BookStoreApiSteps;
+import steps.ui.BookStoreUiSteps;
 
 import java.util.List;
 
-import static data.TestData.login;
-import static data.TestData.password;
+import static helpers.LoginExtension.clearSession;
 
 @Tag("bookstore")
 public class BookStoreTests {
 
-    BookStoreSteps bookStoreSteps = new BookStoreSteps();
+    BookStoreApiSteps bookStoreApiSteps = new BookStoreApiSteps();
+    BookStoreUiSteps bookStoreUiSteps = new BookStoreUiSteps();
 
     @BeforeAll
     static void prepare() {
@@ -27,17 +27,24 @@ public class BookStoreTests {
         Configuration.remote = System.getProperty("remote", "https://user1:1234@selenoid.autotests.cloud/wd/hub");
     }
 
+    @AfterEach
+    void clearData() {
+        clearSession();
+    }
+
+    @WithLogin
     @DisplayName("Удаление книги из профиля")
     @Test
     void deleteBookFromProfileTest() {
-        LoginResponseModel loginResponse = bookStoreSteps.performBookStoreLogin(login, password);
-        bookStoreSteps.deleteAllBooksFromProfile(loginResponse);
-        List<BookModel> books = bookStoreSteps.getBooksFromStore();
-        String isbn = bookStoreSteps.selectRandomBook(books);
-        bookStoreSteps.addBookToProfile(isbn, loginResponse);
-        bookStoreSteps.openProfile(loginResponse);
-        bookStoreSteps.checkBookIsAddedToProfile(isbn);
-        bookStoreSteps.deleteBookFromProfile();
-        bookStoreSteps.checkProfileIsEmpty(isbn, loginResponse);
+        Session session = LoginExtension.getSession();
+        bookStoreApiSteps.deleteAllBooksFromProfile(session);
+        List<BookModel> books = bookStoreApiSteps.getBooksFromStore();
+        String isbn = bookStoreApiSteps.selectRandomBook(books);
+        bookStoreApiSteps.addBookToProfile(isbn, session);
+        bookStoreUiSteps.openProfile();
+        bookStoreUiSteps.checkBookIsAddedToProfile(isbn);
+        bookStoreUiSteps.deleteBookFromProfile();
+        bookStoreUiSteps.checkBookIsNotDisplayedInProfile(isbn);
+        bookStoreApiSteps.checkProfileIsEmpty(session);
     }
 }
