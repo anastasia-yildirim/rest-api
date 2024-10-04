@@ -15,7 +15,7 @@ import java.util.List;
 import static helpers.LoginExtension.clearSession;
 
 @Tag("bookstore")
-public class BookStoreTests {
+public class BookStoreTests extends TestBase {
 
     BookStoreApiSteps bookStoreApiSteps = new BookStoreApiSteps();
     BookStoreUiSteps bookStoreUiSteps = new BookStoreUiSteps();
