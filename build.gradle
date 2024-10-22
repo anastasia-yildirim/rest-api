@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'io.qameta.allure' version '2.11.2'
-    id "io.freefair.lombok" version "6.0.0-m2"
+    id "io.freefair.lombok" version "8.10.2"
 }
 
 repositories {
@@ -9,7 +9,7 @@ repositories {
 }
 
 def restAssuredVersion = "5.3.1",
-    allureVersion = "2.21.0"
+    allureVersion = "2.26.0"
 
 allure {
     report {
@@ -33,7 +33,8 @@ dependencies {
             "io.qameta.allure:allure-selenide:$allureVersion",
             "org.junit.jupiter:junit-jupiter:5.10.0",
             'org.slf4j:slf4j-simple:2.0.7',
-            'com.codeborne:selenide:7.5.0'
+            'com.codeborne:selenide:7.5.0',
+            'io.github.bonigarcia:webdrivermanager:5.9.2'
     )
 }
 

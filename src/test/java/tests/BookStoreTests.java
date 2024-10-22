@@ -1,7 +1,7 @@
 package tests;
 
 import com.codeborne.selenide.Configuration;
-import data.Session;
+import models.Session;
 import helpers.LoginExtension;
 import helpers.WithLogin;
 import io.restassured.RestAssured;
@@ -10,9 +10,13 @@ import org.junit.jupiter.api.*;
 import steps.api.BookStoreApiSteps;
 import steps.ui.BookStoreUiSteps;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Selenide.$;
 import static helpers.LoginExtension.clearSession;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("bookstore")
 public class BookStoreTests extends TestBase {
@@ -36,15 +40,28 @@ public class BookStoreTests extends TestBase {
     @DisplayName("Удаление книги из профиля")
     @Test
     void deleteBookFromProfileTest() {
+        //Arrange
         Session session = LoginExtension.getSession();
+        List<BookModel> books;
+        String isbn;
+        List<BookModel> collectionOfIsbns = new ArrayList<>();
+
+        //Act
         bookStoreApiSteps.deleteAllBooksFromProfile(session);
-        List<BookModel> books = bookStoreApiSteps.getBooksFromStore();
-        String isbn = bookStoreApiSteps.selectRandomBook(books);
-        bookStoreApiSteps.addBookToProfile(isbn, session);
+        books = bookStoreApiSteps.getBooksFromStore();
+        assertNotEquals(null, books);
+
+        isbn = bookStoreApiSteps.selectRandomBook(books);
+        bookStoreApiSteps.addBookToIsbnCollection(isbn, collectionOfIsbns);
+        books = bookStoreApiSteps.addBookToProfile(collectionOfIsbns, session);
+        assertEquals(collectionOfIsbns, books);
+
         bookStoreUiSteps.openProfile();
-        bookStoreUiSteps.checkBookIsAddedToProfile(isbn);
-        bookStoreUiSteps.deleteBookFromProfile();
-        bookStoreUiSteps.checkBookIsNotDisplayedInProfile(isbn);
-        bookStoreApiSteps.checkProfileIsEmpty(session);
+        bookStoreUiSteps.deleteBookFromProfile(isbn);
+
+        //Assert
+        $(".ReactTable").$("a[href='/profile?book=" + isbn + "']").shouldNot(exist);
+        books = bookStoreApiSteps.getBooksFromProfile(session);
+        assertTrue(books.isEmpty());
     }
 }

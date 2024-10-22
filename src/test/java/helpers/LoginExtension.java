@@ -1,7 +1,7 @@
 package helpers;
 
-import data.Session;
-import models.bookstore.LoginResponseModel;
+import models.Session;
+import models.bookstore.response.LoginResponseModel;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import steps.api.BookStoreAuthorizationApi;

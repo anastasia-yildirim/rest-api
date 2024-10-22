@@ -1,16 +1,17 @@
 package steps.api;
 
-import data.Session;
+import models.Session;
 import io.qameta.allure.Step;
 import models.bookstore.*;
+import models.bookstore.request.AddBookToProfileRequestModel;
+import models.bookstore.response.AddBookToProfileResponseModel;
+import models.bookstore.response.GetBooksFromProfileResponseModel;
+import models.bookstore.response.GetBooksFromStoreResponseModel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
 import static specs.BookStoreSpec.*;
 
 public class BookStoreApiSteps {
@@ -28,17 +29,13 @@ public class BookStoreApiSteps {
 
     @Step("Получить список книг, доступных в магазине")
     public List<BookModel> getBooksFromStore() {
-
-        GetBooksFromStoreResponseModel response = step("Отправить запрос через API", () ->
+        GetBooksFromStoreResponseModel response =
                 given(bookStoreRequestSpec)
                         .when()
                         .get("/BookStore/v1/books")
                         .then()
-                        .spec(bookStoreResponseSpec200))
+                        .spec(bookStoreResponseSpec200)
                 .extract().as(GetBooksFromStoreResponseModel.class);
-        step("Убедиться, что ответ не null", () -> {
-            assertNotEquals(null, response);
-        });
 
         return response.getBooks();
     }
@@ -52,18 +49,22 @@ public class BookStoreApiSteps {
         return randomBook.getIsbn();
     }
 
-    @Step("Добавить выбранную книгу в профиль")
-    public void addBookToProfile(String isbn, Session session) {
-        //Prepare
+    @Step("Добавить книгу в список книг")
+    public List<BookModel> addBookToIsbnCollection(String isbn, List<BookModel> collectionOfIsbns) {
         BookModel selectedBook = new BookModel();
         selectedBook.setIsbn(isbn);
-        List<BookModel> collectionOfIsbns = new ArrayList<>();
         collectionOfIsbns.add(selectedBook);
+
+        return collectionOfIsbns;
+    }
+
+    @Step("Добавить выбранную книгу в профиль")
+    public List<BookModel> addBookToProfile(List<BookModel> collectionOfIsbns, Session session) {
+
         AddBookToProfileRequestModel bodyData = new AddBookToProfileRequestModel();
         bodyData.setCollectionOfIsbns(collectionOfIsbns);
         bodyData.setUserId(session.getUserId());
-        //Act
-        AddBookToProfileResponseModel response = step("Отправить запрос на добавление книги в профиль", ()->
+        AddBookToProfileResponseModel response =
                 given(bookStoreRequestSpec)
                         .header("Authorization", "Bearer " + session.getToken())
                         .body(bodyData)
@@ -71,25 +72,22 @@ public class BookStoreApiSteps {
                         .post("/BookStore/v1/Books")
                         .then()
                         .spec(bookStoreResponseSpec201)
-                        .extract().as(AddBookToProfileResponseModel.class));
-        //Assert
-        step("В ответе должен вернуться ISBN, переданный в запросе", ()-> {
-            assertEquals(bodyData.getCollectionOfIsbns(), response.getBooks());
-        });
+                        .extract().as(AddBookToProfileResponseModel.class);
+
+        return response.getBooks();
     }
 
     @Step("Убедиться, что в профиле нет книг")
-    public void checkProfileIsEmpty(Session session) {
-        GetBooksFromProfileResponseModel response = step("Получить список книг в профиле по API", ()->
+    public List<BookModel> getBooksFromProfile(Session session) {
+        GetBooksFromProfileResponseModel response =
                 given(bookStoreRequestSpec)
                         .when()
                         .header("Authorization", "Bearer " + session.getToken())
                         .get("/Account/v1/User/" + session.getUserId())
                         .then()
-                        .spec(bookStoreResponseSpec200))
+                        .spec(bookStoreResponseSpec200)
                 .extract().as(GetBooksFromProfileResponseModel.class);
-        step("Убедиться, что список пустой", ()-> {
-            assertTrue(response.getBooks().isEmpty());
-        });
+
+        return response.getBooks();
     }
 }

@@ -1,4 +1,4 @@
-package models.bookstore;
+package models.bookstore.request;
 
 import lombok.Data;
 

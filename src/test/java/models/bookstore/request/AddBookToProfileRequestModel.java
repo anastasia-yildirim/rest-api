@@ -1,6 +1,7 @@
-package models.bookstore;
+package models.bookstore.request;
 
 import lombok.Data;
+import models.bookstore.BookModel;
 
 import java.util.List;
 

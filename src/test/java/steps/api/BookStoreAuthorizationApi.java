@@ -1,11 +1,11 @@
 package steps.api;
 
-import data.Session;
+import models.Session;
 import io.qameta.allure.Step;
-import models.bookstore.GenerateTokenRequestModel;
-import models.bookstore.GenerateTokenResponseModel;
-import models.bookstore.LoginRequestModel;
-import models.bookstore.LoginResponseModel;
+import models.bookstore.request.GenerateTokenRequestModel;
+import models.bookstore.response.GenerateTokenResponseModel;
+import models.bookstore.request.LoginRequestModel;
+import models.bookstore.response.LoginResponseModel;
 import org.openqa.selenium.Cookie;
 
 import static com.codeborne.selenide.Selenide.open;
